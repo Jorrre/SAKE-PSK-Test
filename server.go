@@ -1,48 +1,44 @@
 package main
 
 import (
-	"bufio"
 	"crypto/tls"
-	"io"
 	"log"
 	"net"
-	"time"
 )
 
 const serverCertPublic = "server.crt"
 const serverCertPrivate = "server.key"
 
-func server(serverAddress string) {
+func server(serverAddr string) {
 	cer, err := tls.LoadX509KeyPair(serverCertPublic, serverCertPrivate)
 	if err != nil {
-		log.Fatalln("server: error reading certificate")
+		log.Fatalf("server: error reading certificate: %s", err)
 		return
 	}
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cer},
 		MinVersion:   tls.VersionTLS13,
-		ServerName:   serverAddress,
+		ServerName:   serverAddr,
 	}
-	ln, err := tls.Listen("tcp", serverAddress, config)
+	ln, err := tls.Listen("tcp", serverAddr, config)
 	if err != nil {
-		log.Fatalf("server: error listening on %s: %s", serverAddress, err)
+		log.Fatalf("server: error listening on %s: %s", serverAddr, err)
 		return
 	}
-	log.Printf("Server up and running on %s", serverAddress)
+	log.Printf("Server up and running on %s", serverAddr)
 
 	defer func(ln net.Listener) {
 		err = ln.Close()
 		if err != nil {
-			log.Fatalln("server: error closing listener")
+			log.Fatalf("server: error closing listener: %s", err)
 		}
-		time.Sleep(time.Second)
 	}(ln)
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Println("server: error accepting connection")
+			log.Printf("server: error accepting connection: %s", err)
 			continue
 		}
 		go handleConnection(conn)
@@ -53,24 +49,18 @@ func handleConnection(conn net.Conn) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
-			log.Println("server: error closing connection")
+			log.Printf("server: error closing connection: %s", err)
 		}
 	}(conn)
 
-	r := bufio.NewReader(conn)
-	for {
-		_, err := r.ReadString('\n')
-		if err != nil {
-			if err != io.EOF {
-				log.Printf("server: error reading from connection: %s", err)
-			}
-			return
-		}
+	err := read(conn)
+	if err != nil {
+		log.Printf("server: error reading from connection: %s", err)
+	}
 
-		_, err = conn.Write([]byte("world!\n"))
-		if err != nil {
-			log.Println("server: error writing to connection")
-			return
-		}
+	res := "world\n"
+	err = write(conn, res)
+	if err != nil {
+		log.Printf("server: error writing to connection: %s", err)
 	}
 }

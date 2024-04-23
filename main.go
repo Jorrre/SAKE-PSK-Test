@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"sync"
 	"time"
@@ -30,10 +32,10 @@ func runTest(clients int, useRes bool) int {
 		log.Printf("================ Running full handshake test with %d client(s) ================", clients)
 	}
 
-	serverAddress := fmt.Sprintf("%s:%d", serverIP, serverPort)
+	serverAddr := fmt.Sprintf("%s:%d", serverIP, serverPort)
 
 	log.Println("Starting server...")
-	go server(serverAddress)
+	go server(serverAddr)
 	time.Sleep(time.Second) // wait for server to come up
 
 	resultChan := make(chan int, clients)
@@ -42,7 +44,7 @@ func runTest(clients int, useRes bool) int {
 	log.Printf("Starting %d client(s)...\n", clients)
 	for i := 0; i < clients; i++ {
 		wg.Add(1)
-		go client(serverAddress, useRes, resultChan, &wg)
+		go client(serverAddr, useRes, resultChan, &wg)
 	}
 	log.Println("All clients up and running")
 	log.Printf("Performing handshakes for %d seconds...", int(runTime.Seconds()))
@@ -60,9 +62,26 @@ func runTest(clients int, useRes bool) int {
 	log.Printf("Total number of handshakes: %d", total)
 	hsps := float64(total) / runTime.Seconds()
 	log.Printf("Handshakes per second: %s", strconv.FormatFloat(hsps, 'f', -1, 64))
-	println()
 
+	println()
 	serverPort++
 
 	return total
+}
+
+func read(conn net.Conn) error {
+	r := bufio.NewReader(conn)
+	_, err := r.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func write(conn net.Conn, msg string) error {
+	_, err := conn.Write([]byte(msg))
+	if err != nil {
+		return err
+	}
+	return nil
 }

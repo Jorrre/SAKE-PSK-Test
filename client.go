@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func client(serverAddress string, useRes bool, h chan int, wg *sync.WaitGroup) {
+func client(serverAddr string, useRes bool, h chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	config := &tls.Config{
@@ -22,7 +22,7 @@ func client(serverAddress string, useRes bool, h chan int, wg *sync.WaitGroup) {
 	startTime := time.Now()
 	endTime := startTime.Add(runTime)
 	for time.Now().Before(endTime) {
-		err := makeRequest(serverAddress, config)
+		err := makeRequest(serverAddr, config)
 		if err == nil {
 			handshakes++
 		}
@@ -30,8 +30,8 @@ func client(serverAddress string, useRes bool, h chan int, wg *sync.WaitGroup) {
 	h <- handshakes
 }
 
-func makeRequest(serverAddress string, config *tls.Config) error {
-	conn, err := tls.Dial("tcp", serverAddress, config)
+func makeRequest(serverAddr string, config *tls.Config) error {
+	conn, err := tls.Dial("tcp", serverAddr, config)
 	if err != nil {
 		log.Printf("client: error dialling: %s", err)
 		return err
@@ -43,17 +43,14 @@ func makeRequest(serverAddress string, config *tls.Config) error {
 		}
 	}(conn)
 
-	_, err = conn.Write([]byte("hello\n"))
+	err = write(conn, "hello\n")
 	if err != nil {
 		log.Printf("client: error writing to connection: %s", err)
-		return err
 	}
 
-	buf := make([]byte, 100)
-	_, err = conn.Read(buf)
+	err = read(conn)
 	if err != nil {
 		log.Printf("client: error reading from connection: %s", err)
-		return err
 	}
 	return nil
 }
