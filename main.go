@@ -12,7 +12,7 @@ import (
 )
 
 const maxClients = 10
-const runTime = time.Second * 60
+const runTime = time.Second * 5
 const serverIP = "127.0.0.1"
 
 var serverPort = 2208
