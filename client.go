@@ -7,14 +7,22 @@ import (
 	"time"
 )
 
-func client(config *tls.Config, h chan int, wg *sync.WaitGroup) {
+func client(serverAddress string, useRes bool, h chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+		MinVersion:         tls.VersionTLS13,
+	}
+	if useRes {
+		config.ClientSessionCache = tls.NewLRUClientSessionCache(0) // 0 = default capacity
+	}
 
 	handshakes := 0
 	startTime := time.Now()
 	endTime := startTime.Add(runTime)
 	for time.Now().Before(endTime) {
-		err := makeRequest(config)
+		err := makeRequest(serverAddress, config)
 		if err == nil {
 			handshakes++
 		}
@@ -22,7 +30,7 @@ func client(config *tls.Config, h chan int, wg *sync.WaitGroup) {
 	h <- handshakes
 }
 
-func makeRequest(config *tls.Config) error {
+func makeRequest(serverAddress string, config *tls.Config) error {
 	conn, err := tls.Dial("tcp", serverAddress, config)
 	if err != nil {
 		log.Printf("client: error dialling: %s", err)

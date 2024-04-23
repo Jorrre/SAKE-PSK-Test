@@ -12,7 +12,7 @@ import (
 const serverCertPublic = "server.crt"
 const serverCertPrivate = "server.key"
 
-func server() {
+func server(serverAddress string) {
 	cer, err := tls.LoadX509KeyPair(serverCertPublic, serverCertPrivate)
 	if err != nil {
 		log.Fatalln("server: error reading certificate")

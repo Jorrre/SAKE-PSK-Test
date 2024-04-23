@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"strconv"
@@ -10,17 +9,15 @@ import (
 )
 
 const maxClients = 10
-const runTime = time.Second * 60
+const runTime = time.Second * 5
 const serverIP = "127.0.0.1"
 
 var serverPort = 2208
 
-var serverAddress = ""
-
 func main() {
 	log.SetFlags(log.Lmicroseconds)
 	for clients := 1; clients <= maxClients; clients++ {
-		for _, useRes := range []bool{true, false} {
+		for _, useRes := range []bool{false, true} {
 			runTest(clients, useRes)
 		}
 	}
@@ -33,28 +30,19 @@ func runTest(clients int, useRes bool) int {
 		log.Printf("================ Running full handshake test with %d client(s) ================", clients)
 	}
 
-	serverAddress = fmt.Sprintf("%s:%d", serverIP, serverPort)
+	serverAddress := fmt.Sprintf("%s:%d", serverIP, serverPort)
 
 	log.Println("Starting server...")
-	go server()
+	go server(serverAddress)
 	time.Sleep(time.Second) // wait for server to come up
 
 	resultChan := make(chan int, clients)
 	var wg sync.WaitGroup
 
-	clientConfig := &tls.Config{
-		InsecureSkipVerify: true,
-		MinVersion:         tls.VersionTLS13,
-	}
-	if useRes {
-		clientConfig.ClientSessionCache = tls.NewLRUClientSessionCache(0) // 0 = default capacity
-	}
-
 	log.Printf("Starting %d client(s)...\n", clients)
 	for i := 0; i < clients; i++ {
-
 		wg.Add(1)
-		go client(clientConfig, resultChan, &wg)
+		go client(serverAddress, useRes, resultChan, &wg)
 	}
 	log.Println("All clients up and running")
 	log.Printf("Performing handshakes for %d seconds...", int(runTime.Seconds()))
