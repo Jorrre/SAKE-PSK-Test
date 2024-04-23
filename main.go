@@ -21,7 +21,7 @@ func main() {
 	log.SetFlags(log.Lmicroseconds)
 	var fullResults, pskResults [maxClients]float64
 	for clients := 1; clients <= maxClients; clients++ {
-		for _, useRes := range []bool{false, true} {
+		for _, useRes := range []bool{true, true} {
 			result := runTest(clients, useRes)
 			if useRes {
 				pskResults[clients-1] = result
