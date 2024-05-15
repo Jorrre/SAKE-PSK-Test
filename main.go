@@ -12,7 +12,7 @@ import (
 )
 
 const maxClients = 10
-const runTime = time.Second * 5
+const runTime = time.Second * 60
 const serverIP = "127.0.0.1"
 
 var serverPort = 2208
@@ -21,7 +21,7 @@ func main() {
 	log.SetFlags(log.Lmicroseconds)
 	var fullResults, pskResults [maxClients]float64
 	for clients := 1; clients <= maxClients; clients++ {
-		for _, useRes := range []bool{true, true} {
+		for _, useRes := range []bool{false, true} {
 			result := runTest(clients, useRes)
 			if useRes {
 				pskResults[clients-1] = result
