@@ -11,22 +11,25 @@ import (
 	"time"
 )
 
-const maxClients = 10
 const runTime = time.Second * 60
-const serverIP = "127.0.0.1"
-
-var serverPort = 2208
+const serverAddr = "127.0.0.1:2208"
 
 func main() {
 	log.SetFlags(log.Lmicroseconds)
-	var fullResults, pskResults [maxClients]float64
-	for clients := 1; clients <= maxClients; clients++ {
+	parallelClients := []int{1, 2, 4, 6, 8, 10}
+
+	log.Println("Starting server...")
+	go server(serverAddr)
+	time.Sleep(time.Second) // wait for server to come up
+
+	var fullResults, pskResults []float64
+	for _, clients := range parallelClients {
 		for _, useRes := range []bool{false, true} {
 			result := runTest(clients, useRes)
 			if useRes {
-				pskResults[clients-1] = result
+				pskResults = append(pskResults, result)
 			} else {
-				fullResults[clients-1] = result
+				fullResults = append(fullResults, result)
 			}
 		}
 	}
@@ -42,12 +45,6 @@ func runTest(clients int, useRes bool) float64 {
 	} else {
 		log.Printf("================ Running full TLS handshake test with %d client(s) ================", clients)
 	}
-
-	serverAddr := fmt.Sprintf("%s:%d", serverIP, serverPort)
-
-	log.Println("Starting server...")
-	go server(serverAddr)
-	time.Sleep(time.Second) // wait for server to come up
 
 	resultChan := make(chan int, clients)
 	var wg sync.WaitGroup
@@ -75,8 +72,6 @@ func runTest(clients int, useRes bool) float64 {
 	log.Printf("Handshakes per second: %s", strconv.FormatFloat(hsps, 'f', -1, 64))
 
 	println()
-	serverPort++
-
 	return hsps
 }
 
@@ -97,7 +92,7 @@ func write(conn net.Conn, msg string) error {
 	return nil
 }
 
-func logResult(result [maxClients]float64) {
+func logResult(result []float64) {
 	strArr := make([]string, len(result))
 	for i, v := range result {
 		strArr[i] = fmt.Sprintf("%.1f", v) // You can adjust the formatting as needed
