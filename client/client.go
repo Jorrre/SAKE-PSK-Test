@@ -1,12 +1,14 @@
 package main
 
 import (
-	"SAKE-TLS_Test/utils"
+	"bufio"
 	"crypto/tls"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -43,7 +45,7 @@ func runTests(serverAddr string, useRes bool, runTime time.Duration) {
 		results = append(results, result)
 	}
 	log.Printf("**************** Results, %d seconds ****************", int(runTime.Seconds()))
-	utils.LogResult(results)
+	logResult(results)
 }
 
 func runTest(clients int, useRes bool, serverAddr string, runTime time.Duration) float64 {
@@ -118,14 +120,40 @@ func makeRequest(serverAddr string, config *tls.Config) error {
 		}
 	}(conn)
 
-	err = utils.Write(conn, "hello\n")
+	err = write(conn, "hello\n")
 	if err != nil {
 		log.Printf("client: error writing to connection: %s", err)
 	}
 
-	err = utils.Read(conn)
+	err = read(conn)
 	if err != nil {
 		log.Printf("client: error reading from connection: %s", err)
 	}
 	return nil
+}
+
+func read(conn net.Conn) error {
+	r := bufio.NewReader(conn)
+	_, err := r.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func write(conn net.Conn, msg string) error {
+	_, err := conn.Write([]byte(msg))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func logResult(result []float64) {
+	strArr := make([]string, len(result))
+	for i, v := range result {
+		strArr[i] = fmt.Sprintf("%.1f", v) // You can adjust the formatting as needed
+	}
+	res := strings.Join(strArr, ", ")
+	fmt.Printf("[%s]\n", res)
 }

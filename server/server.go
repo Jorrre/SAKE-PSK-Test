@@ -1,7 +1,7 @@
 package main
 
 import (
-	"SAKE-TLS_Test/utils"
+	"bufio"
 	"crypto/tls"
 	"log"
 	"net"
@@ -59,14 +59,31 @@ func handleConnection(conn net.Conn) {
 		}
 	}(conn)
 
-	err := utils.Read(conn)
+	err := read(conn)
 	if err != nil {
 		log.Printf("server: error reading from connection: %s", err)
 	}
 
 	res := "world\n"
-	err = utils.Write(conn, res)
+	err = write(conn, res)
 	if err != nil {
 		log.Printf("server: error writing to connection: %s", err)
 	}
+}
+
+func read(conn net.Conn) error {
+	r := bufio.NewReader(conn)
+	_, err := r.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func write(conn net.Conn, msg string) error {
+	_, err := conn.Write([]byte(msg))
+	if err != nil {
+		return err
+	}
+	return nil
 }
