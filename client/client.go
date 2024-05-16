@@ -1,13 +1,14 @@
 package main
 
 import (
+	"SAKE-TLS_Test/utils"
 	"crypto/tls"
 	"log"
 	"sync"
 	"time"
 )
 
-func client(serverAddr string, useRes bool, h chan int, wg *sync.WaitGroup) {
+func Client(serverAddr string, useRes bool, runTime time.Duration, h chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	config := &tls.Config{
@@ -43,12 +44,12 @@ func makeRequest(serverAddr string, config *tls.Config) error {
 		}
 	}(conn)
 
-	err = write(conn, "hello\n")
+	err = utils.Write(conn, "hello\n")
 	if err != nil {
 		log.Printf("client: error writing to connection: %s", err)
 	}
 
-	err = read(conn)
+	err = utils.Read(conn)
 	if err != nil {
 		log.Printf("client: error reading from connection: %s", err)
 	}

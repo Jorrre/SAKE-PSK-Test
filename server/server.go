@@ -1,6 +1,7 @@
 package main
 
 import (
+	"SAKE-TLS_Test/utils"
 	"crypto/tls"
 	"log"
 	"net"
@@ -9,7 +10,11 @@ import (
 const serverCertPublic = "server.crt"
 const serverCertPrivate = "server.key"
 
-func server(serverAddr string) {
+func main() {
+	Server()
+}
+
+func Server() {
 	cer, err := tls.LoadX509KeyPair(serverCertPublic, serverCertPrivate)
 	if err != nil {
 		log.Fatalf("server: error reading certificate: %s", err)
@@ -19,14 +24,15 @@ func server(serverAddr string) {
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cer},
 		MinVersion:   tls.VersionTLS13,
-		ServerName:   serverAddr,
 	}
-	ln, err := tls.Listen("tcp", serverAddr, config)
+
+	port := "2208"
+	ln, err := tls.Listen("tcp", ":"+port, config)
 	if err != nil {
-		log.Fatalf("server: error listening on %s: %s", serverAddr, err)
+		log.Fatalf("server: error listening on port %d: %s", port, err)
 		return
 	}
-	log.Printf("Server up and running on %s", serverAddr)
+	log.Printf("Server up and running on %s", ln.Addr().String())
 
 	defer func(ln net.Listener) {
 		err = ln.Close()
@@ -53,13 +59,13 @@ func handleConnection(conn net.Conn) {
 		}
 	}(conn)
 
-	err := read(conn)
+	err := utils.Read(conn)
 	if err != nil {
 		log.Printf("server: error reading from connection: %s", err)
 	}
 
 	res := "world\n"
-	err = write(conn, res)
+	err = utils.Write(conn, res)
 	if err != nil {
 		log.Printf("server: error writing to connection: %s", err)
 	}
