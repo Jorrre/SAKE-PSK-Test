@@ -1,1 +1,1 @@
-module SAKE-TLS_Test
+module SAKE-PSK-Test

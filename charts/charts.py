@@ -8,7 +8,7 @@ legend_label = "Handshake type"
 
 clients = [1, 2, 4, 6, 8, 10]
 
-df = pd.read_json("test_data.json").set_axis(clients)
+df = pd.read_json("data.json").set_axis(clients)
 fig = px.line(df, title=title, markers=True)
 fig.update_layout(
   xaxis_title = x_axis_label,
