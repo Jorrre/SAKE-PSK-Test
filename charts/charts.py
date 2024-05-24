@@ -2,17 +2,26 @@ import plotly.express as px
 import pandas as pd
 
 title = "Handshake Performance Comparison"
-x_axis_label = "# of parallel clients"
-y_axis_label = "Handshakes per second"
-legend_label = "Handshake type"
+x_axis_title = "# of parallel clients"
+y_axis_title = "Handshakes per second"
+legend_title = "Handshake type"
 
 clients = [1, 2, 4, 6, 8, 10]
 
-df = pd.read_json("data.json").set_axis(clients)
-fig = px.line(df, title=title, markers=True)
-fig.update_layout(
-  xaxis_title = x_axis_label,
-  yaxis_title = y_axis_label,
-  legend_title = legend_label
+loopback_df = pd.read_json("loopback.json").set_axis(clients)
+loopback_fig = px.line(loopback_df, title="Loopback", markers=True)
+loopback_fig.update_layout(
+  xaxis_title = x_axis_title,
+  yaxis_title = y_axis_title,
+  legend_title = legend_title
 )
-fig.show()
+loopback_fig.show()
+  
+vpn_df = pd.read_json("vpn.json").set_axis(clients)
+vpn_fig = px.line(vpn_df, title="VPN", markers=True)
+vpn_fig.update_layout(
+  xaxis_title = x_axis_title,
+  yaxis_title = y_axis_title,
+  legend_title = legend_title
+)
+vpn_fig.show()
