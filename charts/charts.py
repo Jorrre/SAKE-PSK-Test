@@ -1,4 +1,5 @@
 import plotly.express as px
+
 import pandas as pd
 
 title = "Handshake Performance Comparison"
@@ -13,8 +14,10 @@ loopback_fig = px.line(loopback_df, title="Loopback", markers=True)
 loopback_fig.update_layout(
   xaxis_title = x_axis_title,
   yaxis_title = y_axis_title,
-  legend_title = legend_title
+  legend_title = legend_title,
+  font=dict(size=20),
 )
+loopback_fig.update_traces(line=dict(width=3))
 loopback_fig.show()
   
 vpn_df = pd.read_json("vpn.json").set_axis(clients)
@@ -22,6 +25,8 @@ vpn_fig = px.line(vpn_df, title="VPN", markers=True)
 vpn_fig.update_layout(
   xaxis_title = x_axis_title,
   yaxis_title = y_axis_title,
-  legend_title = legend_title
+  legend_title = legend_title,
+  font=dict(size=20),
 )
+vpn_fig.update_traces(line=dict(width=3))
 vpn_fig.show()
